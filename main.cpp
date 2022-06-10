@@ -129,6 +129,9 @@ bool clean(const shared_ptr<Node> node)
     case Tok::Ep:
         // case Tok::T:
         {
+            if (parent == NULL)
+                return false;
+            
             // elevate children
             for (auto i = node->children.begin(); i != node->children.end();
                  i++)
