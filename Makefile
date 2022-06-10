@@ -4,7 +4,7 @@ c++ := c++
 c++flags := -Wall -Wpedantic -g -ggdb3
 ldflags := 
 
-objs := main.o
+objs := main.o lex.o utils.o tokens.o node.o parse.o
 
 .Phony : run clean
 all: $(bin)
