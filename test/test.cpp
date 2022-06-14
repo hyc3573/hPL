@@ -30,4 +30,7 @@ BOOST_AUTO_TEST_CASE(hPLTEST)
 
     shared_ptr<Node> tree = make_shared<Node>();
     parse(tree, in, data);
+    clean(tree);
+
+    printNode(tree, 0);
 }

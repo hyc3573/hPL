@@ -1,6 +1,8 @@
 #include "parse.hpp"
 #include "utils.hpp"
 
+#include <exception>
+
 using namespace std;
 
 bool clean(const std::shared_ptr<Node> node)
@@ -24,7 +26,7 @@ bool clean(const std::shared_ptr<Node> node)
         {
             if (parent == NULL)
             {
-                panik("parent freed!\n");
+                throw std::runtime_error("Parent of node is already free'd!");
             }
 
             parent->children.insert(node->i, node->children.front());
@@ -42,7 +44,17 @@ bool clean(const std::shared_ptr<Node> node)
             {
                 auto j = i;
                 advance(j, 2);
-                node->children.erase(i);
+
+                if ((*i)->type == Tok::DIV || (*i)->type == Tok::MINUS)
+                {
+                    (*i)->children.push_back(*next(i));
+                    node->children.erase(next(i));
+                }
+                else
+                {
+                    node->children.erase(i);
+                }
+                
                 i = j;
             }
 
@@ -171,7 +183,7 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                     break;
 
                 default:
-                    panik("F -> e does not exist!\n");
+                    throw parse_error("Number or parenthesis expected!");
                     break;
                 }
                 break;
