@@ -14,3 +14,9 @@ LexToken rule[] = {
 };
 
 std::regex strignore = std::regex("[ \n\t]+", std::regex::extended);
+
+std::ostream& operator<<(std::ostream& os, const Tok& in)
+{
+    os << tokstr[(int)in];
+    return os;
+}

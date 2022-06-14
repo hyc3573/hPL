@@ -31,9 +31,9 @@ void printNode(const std::shared_ptr<const Node> node, const int indent,
     }
     printf("\n");
 
-    for (auto &n : node->children)
+    for (auto i=node->children.begin();i!=node->children.end();++i)
     {
-        printNode(n, indent + 1, cur);
+        printNode(*i, indent + 1, cur);
     }
 }
 

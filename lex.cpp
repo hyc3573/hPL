@@ -2,6 +2,8 @@
 
 void lex(std::string input, std::vector<Tok> &in, std::vector<Data> &data)
 {
+    in.clear(); data.clear();
+    
     using namespace std;
 
     while (input.size())
@@ -41,7 +43,7 @@ void lex(std::string input, std::vector<Tok> &in, std::vector<Data> &data)
 
         if (!hadMatch)
         {
-            panik("Lexing error!\n");
+            throw lex_error("lex error! invalid token");
         }
     }
 }

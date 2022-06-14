@@ -1,7 +1,9 @@
 #ifndef __TOKENS_HPP
 #define __TOKENS_HPP
 
+#include <iterator>
 #include <regex>
+#include <iostream>
 
 enum class Tok
 {
@@ -21,6 +23,8 @@ enum class Tok
     Tp,
     e
 };
+
+std::ostream& operator<<(std::ostream& os, const Tok& tok);
 
 typedef struct
 {

@@ -82,7 +82,7 @@ bool clean(const std::shared_ptr<Node> node)
 }
 
 void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
-           const std::vector<Data>& data)
+           const std::vector<Data> &data)
 {
     // rules:
     // E -> T Ep
@@ -90,7 +90,7 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
     // T  -> F Tp
     // Tp -> * F Tp | / F Tp | e
     // F -> (E) | NUM
-    
+
     deque<Tok> st1;
     deque<Tok> st2;
     st2.push_back(Tok::E);
@@ -251,8 +251,8 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                     cur->add(Tok::MINUS);
                     cur->add(Tok::T);
                     cur->add(Tok::Ep);
+
                     cur = *next(cur->children.begin());
-                    cur = *next(cur->children.begin()); //
 
                     pos++;
                     break;

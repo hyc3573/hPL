@@ -1,30 +1,30 @@
-bin := hPL
-test := test/test
+bin := test
 
 c++ := c++
 c++flags := -Wall -Wpedantic -g -ggdb3
-ldflags := 
+ldflags := -lboost_unit_test_framework
 
-objs := main.o lex.o utils.o tokens.o node.o parse.o
+objs := test.o
+testobjs := ../lex.o ../utils.o ../tokens.o ../node.o ../parse.o
 
 .Phony : run clean
-all: $(bin) $(test)
+all: $(bin)
 
 deps := $(patsubst %.o,%.d,$(objs))
 -include $(deps)
 DEPFLAGS = -MMD -MF $(@:.o=.d)
 
-$(bin): $(objs)
+$(bin): $(objs) $(testobjs)
 	$(c++) $(c++flags) $(ldflags) -o $@ $^
-
-$(test):
-	make -C test
 
 %.o: %.cpp
 	$(c++) $(c++flags) -c $< $(DEPFLAGS)
 
+$(testobjs):
+	make -C
+
 clean:
 	rm -f $(objs) $(bin)
 
-run: $(test)
-	./$(test)
+run:
+	./$(bin)
