@@ -1,5 +1,7 @@
 #include "node.hpp"
 
+using namespace std;
+
 void Node::add(Tok newtype, Data data)
 {
     using namespace std;
@@ -18,23 +20,27 @@ Node::~Node()
     children.clear();
 }
 
-void printNode(const std::shared_ptr<const Node> node, const int indent,
-               const Node *const cur)
+void printNodeOs(std::ostream &os, const std::shared_ptr<const Node> node,
+                 const int indent, const Node *const cur)
 {
     for (int i = 0; i < indent; i++)
-        printf("|   ");
+        os << "|   ";
 
-    printf("%s: %d", tokstr[static_cast<int>(node->type)], node->data);
+    os << node->type << ": " << node->data.n;
     if (node.get() == cur)
     {
-        printf("*");
+        os << "*";
     }
-    printf("\n");
+    os << "\n";
 
-    for (auto i=node->children.begin();i!=node->children.end();++i)
+    for (auto i = node->children.begin(); i != node->children.end(); ++i)
     {
-        printNode(*i, indent + 1, cur);
+        printNodeOs(os, *i, indent + 1, cur);
     }
 }
 
-
+void printNode(const std::shared_ptr<const Node> node, const int indent,
+               const Node *const cur)
+{
+    printNodeOs(std::cout, node, indent, cur);
+}

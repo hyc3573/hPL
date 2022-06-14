@@ -2,6 +2,7 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE hPLTEST
 #include <boost/test/unit_test.hpp>
+#include <boost/test/tools/output_test_stream.hpp>
 
 #include "../lex.hpp"
 #include "../parse.hpp"
@@ -10,6 +11,7 @@
 #include <vector>
 
 using namespace std;
+using boost::test_tools::output_test_stream;
 
 BOOST_AUTO_TEST_CASE(hPLTEST)
 {
@@ -33,4 +35,22 @@ BOOST_AUTO_TEST_CASE(hPLTEST)
     clean(tree);
 
     printNode(tree, 0);
+
+    output_test_stream os;
+    printNodeOs(os, tree, 0);
+
+    string expected = R"(+: 0
+|   NUM: 1
+|   *: 0
+|   |   NUM: 1
+|   |   NUM: 3
+|   |   /: 0
+|   |   |   NUM: 6
+|   +: 0
+|   |   NUM: 1
+|   |   -: 0
+|   |   |   NUM: 2
+)";
+
+    BOOST_CHECK(os.is_equal(expected, false));
 }

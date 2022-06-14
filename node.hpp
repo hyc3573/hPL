@@ -4,6 +4,7 @@
 #include <list>
 #include <locale>
 #include <memory>
+#include <iostream>
 
 typedef struct Node
 {
@@ -22,6 +23,9 @@ typedef struct Node
 } Node;
 
 void printNode(const std::shared_ptr<const Node> node, const int indent,
+               const Node *const cur = NULL);
+
+void printNodeOs(std::ostream& os, const std::shared_ptr<const Node> node, const int indent,
                const Node *const cur = NULL);
 
 #endif
