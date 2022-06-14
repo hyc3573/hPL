@@ -39,6 +39,11 @@ bool clean(const std::shared_ptr<Node> node)
             auto op = next(node->children.begin());
             node->type = op->get()->type;
 
+            if (node->type == Tok::DIV)
+                node->type = Tok::MUL;
+            else if (node->type == Tok::MINUS)
+                node->type = Tok::PLUS;
+
             for (auto i = next(node->children.begin());
                  i != node->children.end();)
             {
