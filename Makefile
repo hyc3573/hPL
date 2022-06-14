@@ -17,7 +17,7 @@ DEPFLAGS = -MMD -MF $(@:.o=.d)
 $(bin): $(objs)
 	$(c++) $(c++flags) $(ldflags) -o $@ $^
 
-$(test):
+$(test): $(objs)
 	make -C test
 
 %.o: %.cpp

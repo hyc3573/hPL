@@ -17,11 +17,11 @@ DEPFLAGS = -MMD -MF $(@:.o=.d)
 $(bin): $(objs) $(testobjs)
 	$(c++) $(c++flags) $(ldflags) -o $@ $^
 
-%.o: %.cpp
+%.o: %.cpp $(testobjs)
 	$(c++) $(c++flags) -c $< $(DEPFLAGS)
 
-$(testobjs):
-	make -C
+../%.o: ../%.cpp
+	make -C ..
 
 clean:
 	rm -f $(objs) $(bin)
