@@ -6,6 +6,8 @@ void lex(std::string input, std::vector<Tok> &in, std::vector<Data> &data)
     
     using namespace std;
 
+    int id_count = 0;
+
     while (input.size())
     {
         bool hadMatch = false;
@@ -27,6 +29,10 @@ void lex(std::string input, std::vector<Tok> &in, std::vector<Data> &data)
                 if (tok.token == Tok::NUM)
                 {
                     data.back().n = stoi(str);
+                }
+                else if (tok.token == Tok::ID)
+                {
+                    data.back().n = id_count++;
                 }
 
                 hadMatch = true;

@@ -38,7 +38,7 @@ int main()
 
     shared_ptr<Node> tree = make_shared<Node>();
 
-    parse(tree, in, data);
+    parse(tree, in, data, Tok::E);
 
     clean(tree);
 

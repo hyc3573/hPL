@@ -2,6 +2,7 @@
 #include "utils.hpp"
 
 #include <exception>
+#include <sys/types.h>
 
 using namespace std;
 
@@ -59,17 +60,32 @@ bool clean(const std::shared_ptr<Node> node)
                 {
                     node->children.erase(i);
                 }
-                
+
                 i = j;
             }
 
             break;
         }
 
+    case Tok::STMT:
+        if (node->children.size() >= 2 && (*next(node->children.begin()))->type == Tok::SUBS)
+        {
+            node->type = Tok::SUBS;
+            node->children.erase(next(node->children.begin()));
+        }
+        else if (node->children.empty())
+        {
+            return true;
+        }
+
+        break;
+
     case Tok::F:
     case Tok::e:
+    case Tok::DELIM:
     case Tok::Tp:
     case Tok::Ep:
+    case Tok::PROG:
         // case Tok::T:
         {
             if (parent == NULL)
@@ -99,21 +115,24 @@ bool clean(const std::shared_ptr<Node> node)
 }
 
 void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
-           const std::vector<Data> &data)
+           const std::vector<Data> &data, Tok starting)
 {
     // rules:
     // E -> T Ep
     // Ep -> + T Ep | - T Ep | e
     // T  -> F Tp
     // Tp -> * F Tp | / F Tp | e
-    // F -> (E) | NUM
+    // F -> (E) | NUM | ID
+
+    // statement -> ID SUB E | e
+    // prog -> statement DELIM prog | statement
 
     deque<Tok> st1;
     deque<Tok> st2;
-    st2.push_back(Tok::E);
+    st2.push_back(starting);
 
     auto cur = tree;
-    tree->type = Tok::E;
+    tree->type = starting;
     tree->parent = weak_ptr<Node>();
     tree->self = tree;
     tree->i = tree->children.begin();
@@ -121,7 +140,7 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
 
     int pos = 0;
     bool shift = false;
-    while (in.size() > pos)
+    while (in.size() >= pos)
     {
         shift = false;
 
@@ -133,6 +152,91 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
         {
             switch (st1.back())
             {
+            case Tok::PROG:
+            {
+                bool hasDelim = false;
+
+                for (int i = pos; i < in.size(); i++)
+                    if (in[i] == Tok::DELIM)
+                        hasDelim = true;
+
+                if (hasDelim)
+                {
+                    cout << "PROG -> STMT PROG" << endl;
+
+                    st1.pop_back();
+                    st1.push_back(Tok::STMT);
+                    st2.push_front(Tok::PROG);
+                    st2.push_front(Tok::DELIM);
+
+                    cur->add(Tok::STMT);
+                    cur->add(Tok::DELIM);
+                    cur->add(Tok::PROG);
+
+                    cur = cur->children.front();
+                }
+                else
+                {
+                    cout << "PROG -> STMT" << endl;
+
+                    st1.pop_back();
+                    st1.push_back(Tok::STMT);
+                    cur->add(Tok::STMT);
+
+                    cur = cur->children.front();
+                }
+            }
+            break;
+
+            case Tok::STMT:
+                if (pos >= in.size())
+                {
+                    cout << "STMT -> e" << endl;
+                    st1.pop_back();
+                    cur->add(Tok::e);
+
+                    shift = true;
+
+                    break;
+                }
+
+                switch (in[pos])
+                {
+                case Tok::ID:
+                    cout << "STMT -> ID SUBS E" << endl;
+
+                    st1.pop_back();
+
+                    st1.push_back(Tok::ID);
+                    st1.push_back(Tok::SUBS);
+                    st1.push_back(Tok::E);
+
+                    cur->add(Tok::ID, data[pos]);
+                    cur->add(Tok::SUBS);
+                    cur->add(Tok::E);
+
+                    cur = cur->children.back();
+
+                    pos += 2;
+
+                    break;
+
+                case Tok::DELIM:
+                    cout << "STMT -> e" << endl;
+                    st1.pop_back();
+                    cur->add(Tok::e);
+
+                    shift = true;
+
+                    break;
+
+                default:
+                    throw parse_error("expected ID!");
+                    break;
+                }
+
+                break;
+
             case Tok::E:
                 cout << "E -> T E'" << endl;
                 st1.pop_back();
@@ -185,6 +289,19 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                     cur = *next(cur->children.begin());
 
                     pos++;
+                    break;
+
+                case Tok::ID:
+                    cout << "F -> ID" << endl;
+                    st1.pop_back();
+                    st1.push_back(Tok::ID);
+
+                    cur->add(Tok::ID, data[pos]);
+                    cur = cur->children.front();
+
+                    pos++;
+                    shift = true;
+
                     break;
 
                 default:
@@ -290,6 +407,10 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                 {
                     pos++;
                 }
+
+            case Tok::DELIM:
+                if (in[pos] == Tok::DELIM)
+                    pos++;
 
             default:
                 shift = true;

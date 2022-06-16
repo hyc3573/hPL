@@ -21,7 +21,15 @@ enum class Tok
     F,
     T,
     Tp,
-    e
+    e,
+
+    ID,
+    SUBS,
+
+    STMT,
+    PROG,
+
+    DELIM
 };
 
 std::ostream& operator<<(std::ostream& os, const Tok& tok);
@@ -32,8 +40,8 @@ typedef struct
     Tok token;
 } LexToken;
 
-extern const char *tokstr[13];
-extern LexToken rule[7];
+extern const char *tokstr[18];
+extern LexToken rule[10];
 extern std::regex strignore;
 
 union Data

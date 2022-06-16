@@ -14,6 +14,6 @@
 bool clean(const std::shared_ptr<Node> node);
 
 void parse(const std::shared_ptr<Node> tree, const std::vector<Tok>& in,
-           const std::vector<Data>& data);
+           const std::vector<Data>& data, Tok starting);
 
 #endif

@@ -1,7 +1,8 @@
 #include "tokens.hpp"
 
-const char *tokstr[] = {"NUM", "+",  "-", "*", "/",  "(", ")",
-                        "E",   "E'", "F", "T", "T'", "e"};
+const char *tokstr[] = {
+    "NUM", "+", "-", "*", "/", "(", ")", "E", "E'", "F", "T", "T'", "e", "ID", "=", "statement", "program", ";"
+};
 
 LexToken rule[] = {
         {std::regex("[0-9]+", std::regex::extended), Tok::NUM},
@@ -11,6 +12,10 @@ LexToken rule[] = {
         {std::regex("\\/", std::regex::extended), Tok::DIV},
         {std::regex("\\(", std::regex::extended), Tok::OPA},
         {std::regex("\\)", std::regex::extended), Tok::CPA},
+
+        {std::regex("[a-zA-Z_-][a-zA-Z0-9_-]*", std::regex::extended), Tok::ID},
+        {std::regex("=", std::regex::extended), Tok::SUBS},
+        {std::regex(";", std::regex::extended), Tok::DELIM},
 };
 
 std::regex strignore = std::regex("[ \n\t]+", std::regex::extended);
