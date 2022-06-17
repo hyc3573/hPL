@@ -78,7 +78,6 @@ BOOST_AUTO_TEST_CASE(hPLTEST)
     tree = make_shared<Node>();
     parse(tree, in, data, Tok::PROG);
     clean(tree);
-    printNode(tree, 0);
 
     os.flush();
     printNodeOs(os, tree, 0);
