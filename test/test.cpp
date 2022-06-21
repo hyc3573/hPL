@@ -94,4 +94,38 @@ BOOST_AUTO_TEST_CASE(hPLTEST)
 |   |   NUM: 100
 )";
     BOOST_CHECK(os.is_equal(expected, false));
+
+    expectedin = {Tok::LBL, Tok::ID, Tok::DELIM, Tok::GOTO, Tok::ID, Tok::DELIM, Tok::IF, Tok::NUM, Tok::EQ, Tok::NUM, Tok::GOTO, Tok::ID, Tok::DELIM};
+    lex("label a;goto a;if 1 == 1 goto a;", in, data);
+    for (auto &i : in)
+        cout << i << " ";
+    cout << endl;
+    BOOST_CHECK_EQUAL_COLLECTIONS(expectedin.begin(), expectedin.end(), in.begin(), in.end());
+
+    tree = make_shared<Node>();
+    parse(tree, in, data, Tok::PROG);
+    clean(tree);
+
+    printNode(tree, 0);
+
+    os.flush();
+    printNodeOs(os, tree, 0);
+
+    expected = R"(program: 0
+|   statement: 0
+|   |   label: 0
+|   |   ID: 0
+|   statement: 0
+|   |   goto: 0
+|   |   ID: 0
+|   statement: 0
+|   |   if: 0
+|   |   ==: 0
+|   |   |   NUM: 1
+|   |   |   NUM: 1
+|   |   statement: 0
+|   |   |   goto: 0
+|   |   |   ID: 0
+)";
+    BOOST_CHECK(os.is_equal(expected, false));
 }

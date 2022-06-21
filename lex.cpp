@@ -41,7 +41,7 @@ void lex(std::string input, std::vector<Tok> &in, std::vector<Data> &data)
             }
         }
 
-        if (regex_search(input, match, strignore))
+        if (regex_search(input, match, strignore) && match.position() == 0)
         {
             input = match.suffix();
             hadMatch = true;

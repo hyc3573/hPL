@@ -23,6 +23,7 @@ bool clean(const std::shared_ptr<Node> node)
     {
     case Tok::T:
     case Tok::E:
+    case Tok::EXPR:
         if (node->children.size() == 1)
         {
             if (parent == NULL)
@@ -85,6 +86,7 @@ bool clean(const std::shared_ptr<Node> node)
     case Tok::DELIM:
     case Tok::Tp:
     case Tok::Ep:
+    case Tok::Xp:
     case Tok::PROG:
         // case Tok::T:
         {
@@ -118,13 +120,15 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
            const std::vector<Data> &data, Tok starting)
 {
     // rules:
+    // EXPR -> E Xp
+    // Xp -> == E Xp | e
     // E -> T Ep
     // Ep -> + T Ep | - T Ep | e
     // T  -> F Tp
     // Tp -> * F Tp | / F Tp | e
-    // F -> (E) | NUM | ID
+    // F -> (EXPR) | NUM | ID
 
-    // statement -> ID SUB E | e
+    // statement -> ID SUB EXPR | LBL ID | GOTO ID | IF EXPR GOTO ID | e
     // prog -> statement DELIM prog | statement
 
     deque<Tok> st1;
@@ -203,21 +207,68 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                 switch (in[pos])
                 {
                 case Tok::ID:
-                    cout << "STMT -> ID SUBS E" << endl;
+                    cout << "STMT -> ID SUBS EXPR" << endl;
 
                     st1.pop_back();
 
                     st1.push_back(Tok::ID);
                     st1.push_back(Tok::SUBS);
-                    st1.push_back(Tok::E);
+                    st1.push_back(Tok::EXPR);
 
                     cur->add(Tok::ID, data[pos]);
                     cur->add(Tok::SUBS);
-                    cur->add(Tok::E);
+                    cur->add(Tok::EXPR);
 
                     cur = cur->children.back();
 
                     pos += 2;
+
+                    break;
+
+                case Tok::LBL:
+                    cout << "STMT -> label ID" << endl;
+                    st1.pop_back();
+                    st1.push_back(Tok::LBL);
+                    st1.push_back(Tok::ID);
+
+                    cur->add(Tok::LBL);
+                    cur->add(Tok::ID);
+                    cur = cur->children.back();
+
+                    pos += 2;
+                    shift = true;
+
+                    break;
+
+                case Tok::GOTO:
+                    cout << "STMT -> GOTO ID" << endl;
+                    st1.pop_back();
+                    st1.push_back(Tok::GOTO);
+                    st1.push_back(Tok::ID);
+
+                    cur->add(Tok::GOTO);
+                    cur->add(Tok::ID);
+                    cur = cur->children.back();
+
+                    pos += 2;
+                    shift = true;
+
+                    break;
+
+                case Tok::IF:
+                    cout << "STMT -> IF expression program" << endl;
+                    st1.pop_back();
+                    st1.push_back(Tok::IF);
+                    st1.push_back(Tok::EXPR);
+
+                    st2.push_front(Tok::PROG);
+
+                    cur->add(Tok::IF);
+                    cur->add(Tok::EXPR);
+                    cur->add(Tok::PROG);
+                    cur = *next(cur->children.begin());
+
+                    pos += 1;
 
                     break;
 
@@ -233,6 +284,49 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                 default:
                     throw parse_error("expected ID!");
                     break;
+                }
+
+                break;
+
+            case Tok::EXPR:
+                cout << "EXPR -> E X'" << endl;
+                st1.pop_back();
+                st1.push_back(Tok::E);
+                st2.push_front(Tok::Xp);
+
+                cur->add(Tok::T);
+                cur->add(Tok::Xp);
+
+                cur = cur->children.front();
+                break;
+
+            case Tok::Xp:
+                switch (in[pos])
+                {
+                case Tok::EQ:
+                    cout << "X' -> == EXPR X'" << endl;
+                    st1.pop_back();
+                    st1.push_back(Tok::EQ);
+                    st1.push_back(Tok::EXPR);
+
+                    st2.push_front(Tok::Xp);
+
+                    cur->add(Tok::EQ);
+                    cur->add(Tok::T);
+                    cur->add(Tok::Xp);
+                    cur = *next(cur->children.begin());
+
+                    pos++;
+
+                    break;
+
+                default:
+                    cout << "X' -> e" << endl;
+                    st1.pop_back();
+
+                    cur->add(Tok::e);
+
+                    shift = true;
                 }
 
                 break;
