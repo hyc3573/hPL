@@ -1,7 +1,7 @@
 bin := test
 
 c++ := c++
-c++flags := -Wall -Wpedantic -g -ggdb3
+c++flags := -Wall -Wpedantic -g -ggdb3 -std=c++17
 ldflags := -lboost_unit_test_framework
 
 objs := test.o

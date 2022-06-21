@@ -2,7 +2,7 @@ bin := hPL
 test := test/test
 
 c++ := c++
-c++flags := -Wall -Wpedantic -g -ggdb3
+c++flags := -Wall -Wpedantic -g -ggdb3 -std=c++17
 ldflags := 
 
 objs := main.o lex.o utils.o tokens.o node.o parse.o
