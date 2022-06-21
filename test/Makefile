@@ -25,6 +25,7 @@ $(bin): $(objs) $(testobjs)
 
 clean:
 	rm -f $(objs) $(bin)
+	make -C .. clean
 
 run:
 	./$(bin)
