@@ -5,6 +5,7 @@
 #include <locale>
 #include <memory>
 #include <iostream>
+#include <variant>
 
 typedef struct Node
 {
@@ -18,7 +19,7 @@ typedef struct Node
 
     Node(){};
     ~Node();
-    void add(Tok, Data data=0);
+    void add(Tok, Data data={});
 
 } Node;
 

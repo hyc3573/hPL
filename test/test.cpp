@@ -38,16 +38,16 @@ BOOST_AUTO_TEST_CASE(hPLTEST)
     output_test_stream os;
     printNodeOs(os, tree, 0);
 
-    string expected = R"(+: 0
+    string expected = R"(+
 |   NUM: 1
-|   *: 0
+|   *
 |   |   NUM: 1
 |   |   NUM: 3
-|   |   /: 0
+|   |   /
 |   |   |   NUM: 6
-|   +: 0
+|   +
 |   |   NUM: 1
-|   |   -: 0
+|   |   -
 |   |   |   NUM: 2
 )";
 
@@ -82,15 +82,15 @@ BOOST_AUTO_TEST_CASE(hPLTEST)
     os.flush();
     printNodeOs(os, tree, 0);
 
-    expected = R"(program: 0
-|   =: 0
-|   |   ID: 0
-|   |   ID: 1
-|   =: 0
-|   |   ID: 2
+    expected = R"(program
+|   =
+|   |   ID: id
+|   |   ID: id
+|   =
+|   |   ID: id
 |   |   NUM: 10
-|   =: 0
-|   |   ID: 3
+|   =
+|   |   ID: id
 |   |   NUM: 100
 )";
     BOOST_CHECK(os.is_equal(expected, false));
@@ -111,21 +111,21 @@ BOOST_AUTO_TEST_CASE(hPLTEST)
     os.flush();
     printNodeOs(os, tree, 0);
 
-    expected = R"(program: 0
-|   statement: 0
-|   |   label: 0
-|   |   ID: 0
-|   statement: 0
-|   |   goto: 0
-|   |   ID: 0
-|   statement: 0
-|   |   if: 0
-|   |   ==: 0
+    expected = R"(program
+|   statement
+|   |   label
+|   |   ID: a
+|   statement
+|   |   goto
+|   |   ID: a
+|   statement
+|   |   if
+|   |   ==
 |   |   |   NUM: 1
 |   |   |   NUM: 1
-|   |   statement: 0
-|   |   |   goto: 0
-|   |   |   ID: 0
+|   |   statement
+|   |   |   goto
+|   |   |   ID: a
 )";
     BOOST_CHECK(os.is_equal(expected, false));
 }

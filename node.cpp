@@ -26,7 +26,16 @@ void printNodeOs(std::ostream &os, const std::shared_ptr<const Node> node,
     for (int i = 0; i < indent; i++)
         os << "|   ";
 
-    os << node->type << ": " << node->data.n;
+    os << node->type;
+
+    if (!holds_alternative<monostate>(node->data))
+        os << ": ";
+    
+    if (holds_alternative<int>(node->data))
+        os << get<int>(node->data);
+    else if (holds_alternative<string>(node->data))
+        os << get<string>(node->data);
+    
     if (node.get() == cur)
     {
         os << "*";

@@ -140,7 +140,7 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
     tree->parent = weak_ptr<Node>();
     tree->self = tree;
     tree->i = tree->children.begin();
-    tree->data = 0;
+    tree->data = {};
 
     int pos = 0;
     bool shift = false;
@@ -232,7 +232,7 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                     st1.push_back(Tok::ID);
 
                     cur->add(Tok::LBL);
-                    cur->add(Tok::ID);
+                    cur->add(Tok::ID, data[pos+1]);
                     cur = cur->children.back();
 
                     pos += 2;
@@ -247,7 +247,7 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                     st1.push_back(Tok::ID);
 
                     cur->add(Tok::GOTO);
-                    cur->add(Tok::ID);
+                    cur->add(Tok::ID, data[pos+1]);
                     cur = cur->children.back();
 
                     pos += 2;

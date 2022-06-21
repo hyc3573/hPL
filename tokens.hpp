@@ -4,6 +4,9 @@
 #include <iterator>
 #include <regex>
 #include <iostream>
+#include <string>
+#include <memory>
+#include <variant>
 
 enum class Tok
 {
@@ -53,12 +56,17 @@ extern const char *tokstr[24];
 extern LexToken rule[14];
 extern std::regex strignore;
 
-union Data
-{
-    int n;
+// union Data
+// {
+//     int n;
+//     std::shared_ptr<std::string> str;
 
-    Data(int n) : n(n){};
-    Data() : n(0){};
-};
+//     Data(int n) : n(n){};
+//     Data(std::string str) : str(std::make_shared<std::string>(str)) {};
+//     Data() : n(0){};
+//     ~Data() {};
+// };
+
+typedef std::variant<std::monostate, int, std::string> Data;
 
 #endif

@@ -2,11 +2,10 @@
 
 void lex(std::string input, std::vector<Tok> &in, std::vector<Data> &data)
 {
-    in.clear(); data.clear();
-    
-    using namespace std;
+    in.clear();
+    data.clear();
 
-    int id_count = 0;
+    using namespace std;
 
     while (input.size())
     {
@@ -24,15 +23,15 @@ void lex(std::string input, std::vector<Tok> &in, std::vector<Data> &data)
                 cout << tokstr[static_cast<int>(tok.token)] << endl << endl;
                 input = match.suffix();
                 in.push_back(tok.token);
-                data.push_back(0);
+                data.push_back({});
 
                 if (tok.token == Tok::NUM)
                 {
-                    data.back().n = stoi(str);
+                    data.back() = stoi(str);
                 }
                 else if (tok.token == Tok::ID)
                 {
-                    data.back().n = id_count++;
+                    data.back() = str;
                 }
 
                 hadMatch = true;
