@@ -1,46 +1,32 @@
-#include "regex"
-#include <deque>
-#include <ios>
-#include <iostream>
-#include <iterator>
-#include <list>
-#include <memory>
-#include <regex>
-#include <stdarg.h>
-#include <string>
-#include <vector>
 #include "lex.hpp"
 #include "node.hpp"
 #include "parse.hpp"
+#include <fstream>
+#include <iostream>
+#include <iterator>
+#include <memory>
+#include <string>
 
 using namespace std;
 
-int main()
+int main(int argc, char *argv[])
 {
-    // lexer
-    cout << "lexing:" << endl << endl;
-    
-    string input = "1+3*3+(4+5+6)";
+    if (argc == 2)
+    {
+        ifstream ifs(argv[1]);
+        string content((istreambuf_iterator<char>(ifs)),
+                       istreambuf_iterator<char>());
 
-    vector<Tok> in;
-    vector<Data> data;
+        vector<Tok> in;
+        vector<Data> data;
 
-    lex(input, in ,data);
-    
-    cout << "----------------------------------" << endl;
-    cout << "parsing:" << endl << endl;
+        lex(content, in, data);
 
-    // parser
+        shared_ptr<Node> tree;
+        tree = make_shared<Node>();
+        parse(tree, in, data, Tok::PROG, false);
+        clean(tree);
 
-    
-    if (in.size() == 0)
-        panik("empty input!\n");
-
-    shared_ptr<Node> tree = make_shared<Node>();
-
-    parse(tree, in, data, Tok::E);
-
-    clean(tree);
-
-    printNode(tree, 0);
+        printNode(tree, 0);
+    }
 }

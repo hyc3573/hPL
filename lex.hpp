@@ -7,6 +7,6 @@
 #include <iostream>
 #include "utils.hpp"
 
-void lex(std::string input, std::vector<Tok> &in, std::vector<Data> &data);
+void lex(std::string input, std::vector<Tok> &in, std::vector<Data> &data, bool quiet=true);
 
 #endif

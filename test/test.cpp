@@ -66,6 +66,17 @@ BOOST_AUTO_TEST_CASE(hPLTEST)
 
     printNode(tree, 0);
 
+    expected = R"(program
+|   =
+|   |   ID: id
+|   |   +
+|   |   |   NUM: 3
+|   |   |   ID: d
+)";
+    os.flush();
+    printNodeOs(os, tree, 0);
+    BOOST_CHECK(os.is_equal(expected, false));
+
     expectedin = {Tok::ID,   Tok::SUBS,  Tok::ID,    Tok::DELIM, Tok::ID,
                   Tok::SUBS, Tok::NUM,   Tok::DELIM, Tok::ID,    Tok::SUBS,
                   Tok::NUM,  Tok::DELIM, Tok::DELIM};
@@ -112,20 +123,48 @@ BOOST_AUTO_TEST_CASE(hPLTEST)
     printNodeOs(os, tree, 0);
 
     expected = R"(program
-|   statement
-|   |   label
+|   label
 |   |   ID: a
-|   statement
-|   |   goto
+|   goto
 |   |   ID: a
-|   statement
-|   |   if
+|   if
 |   |   ==
 |   |   |   NUM: 1
 |   |   |   NUM: 1
-|   |   statement
-|   |   |   goto
+|   |   goto
 |   |   |   ID: a
 )";
     BOOST_CHECK(os.is_equal(expected, false));
+
+    expectedin = {
+        Tok::OBR,
+        Tok::ID,
+        Tok::SUBS,
+        Tok::ID,
+        Tok::CBR
+    };
+    lex("{a=a}", in, data);  
+    BOOST_CHECK_EQUAL_COLLECTIONS(expectedin.begin(), expectedin.end(), in.begin(), in.end());
+
+    tree = make_shared<Node>();
+    parse(tree, in, data, Tok::PROG);
+    clean(tree);
+    printNode(tree, 0);
+
+    lex(R"(if asdf == 5
+{
+    asdf = 10;
+})", in, data);
+    tree = make_shared<Node>();
+    parse(tree, in, data, Tok::PROG);
+    clean(tree);
+    printNode(tree, 0);
+
+    lex("a = (1, 2, 3, 4)", in, data);
+
+    tree = make_shared<Node>();
+    parse(tree, in, data, Tok::STMT);
+    printNode(tree, 0);
+    clean(tree);
+    printNode(tree, 0);
 }

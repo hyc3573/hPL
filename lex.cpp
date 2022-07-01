@@ -1,6 +1,7 @@
 #include "lex.hpp"
 
-void lex(std::string input, std::vector<Tok> &in, std::vector<Data> &data)
+void lex(std::string input, std::vector<Tok> &in, std::vector<Data> &data,
+         bool quiet)
 {
     in.clear();
     data.clear();
@@ -19,8 +20,11 @@ void lex(std::string input, std::vector<Tok> &in, std::vector<Data> &data)
             {
                 // we have a match!!
                 string str = match.str();
-                cout << str << endl;
-                cout << tokstr[static_cast<int>(tok.token)] << endl << endl;
+                if (!quiet)
+                {
+                    cout << str << endl;
+                    cout << tokstr[static_cast<int>(tok.token)] << endl << endl;
+                }
                 input = match.suffix();
                 in.push_back(tok.token);
                 data.push_back({});
