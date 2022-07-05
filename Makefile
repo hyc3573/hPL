@@ -1,11 +1,13 @@
-bin := hPL
-test := test/test
+bin ?= hPL
+test ?= test/test
 
-c++ := c++
-c++flags := -Wall -Wpedantic -g -ggdb3 -std=c++17
-ldflags := 
+CXX ?= CXX
+CXXFLAGS ?= -Wall -Wpedantic -g -ggdb3 -std=c++17
+LDFLAGS ?= 
 
-objs := main.o lex.o utils.o tokens.o node.o parse.o
+objs ?= main.o lex.o utils.o tokens.o node.o parse.o
+
+export CXX
 
 .Phony : run clean
 all: $(bin) $(test)
@@ -15,13 +17,13 @@ deps := $(patsubst %.o,%.d,$(objs))
 DEPFLAGS = -MMD -MF $(@:.o=.d)
 
 $(bin): $(objs)
-	$(c++) $(c++flags) $(ldflags) -o $@ $^
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
 $(test): $(objs)
 	make -C test
 
 %.o: %.cpp
-	$(c++) $(c++flags) -c $< $(DEPFLAGS)
+	$(CXX) $(CXXFLAGS) -c $< $(DEPFLAGS)
 
 clean:
 	rm -f $(objs) $(bin)

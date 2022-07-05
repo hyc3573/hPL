@@ -1,11 +1,11 @@
-bin := test
+bin ?= test
 
-c++ := c++
-c++flags := -Wall -Wpedantic -g -ggdb3 -std=c++17
-ldflags := -lboost_unit_test_framework
+CXX ?= CXX
+CXXFLAGS ?= -Wall -Wpedantic -g -ggdb3 -std=c++17
+LDFLAGS ?= -lboost_unit_test_framework
 
-objs := test.o
-testobjs := ../lex.o ../utils.o ../tokens.o ../node.o ../parse.o
+objs ?= test.o
+testobjs ?= ../lex.o ../utils.o ../tokens.o ../node.o ../parse.o
 
 .Phony : run clean
 all: $(bin)
@@ -15,10 +15,10 @@ deps := $(patsubst %.o,%.d,$(objs))
 DEPFLAGS = -MMD -MF $(@:.o=.d)
 
 $(bin): $(objs) $(testobjs)
-	$(c++) $(c++flags) $(ldflags) -o $@ $^
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
 %.o: %.cpp $(testobjs)
-	$(c++) $(c++flags) -c $< $(DEPFLAGS)
+	$(CXX) $(CXXFLAGS) -c $< $(DEPFLAGS)
 
 ../%.o: ../%.cpp
 	make -C ..

@@ -8,10 +8,11 @@
 #define SKIP(x)                                                                \
     case (x):                                                                  \
         if (in[pos] == (x))                                                    \
-            pos++;                                                      \
-        else                                                          \
-            throw parse_error((tokstr[(int)(x)] + std::string(" expected")).c_str()); \
-                goto skip
+            pos++;                                                             \
+        else                                                                   \
+            throw parse_error(                                                 \
+                (tokstr[(int)(x)] + std::string(" expected")).c_str());        \
+        goto skip
 
 using namespace std;
 
@@ -122,6 +123,7 @@ bool clean(const std::shared_ptr<Node> node, bool quiet)
     case Tok::Xp:
     case Tok::PROG:
     case Tok::Lp:
+    case Tok::LIST:
         // case Tok::T:
         {
             if (parent == NULL || parent->type == Tok::STMT)
@@ -137,21 +139,6 @@ bool clean(const std::shared_ptr<Node> node, bool quiet)
             // indicate that we should delete this
             return true;
         }
-        break;
-
-    case Tok::LIST:
-        cout << "dsaf" << endl;
-        if (parent == NULL || parent->type != Tok::LIST)
-        {
-            return false;
-        }
-        // elevate children
-        for (auto i = node->children.begin(); i != node->children.end(); i++)
-        {
-                parent->children.insert(node->i, *i);
-        }
-        return true;
-
         break;
 
     case Tok::OPA:
@@ -399,10 +386,10 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                     cur->add(Tok::LIST);
 
                     cur = *next(cur->children.begin());
-                    
+
                     pos++;
                     break;
-                    
+
                 default:
                     if (!quiet)
                         cout << "L' -> e" << endl;
