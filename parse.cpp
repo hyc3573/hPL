@@ -2,6 +2,7 @@
 #include "utils.hpp"
 
 #include <exception>
+#include <iterator>
 #include <string>
 #include <sys/types.h>
 
@@ -164,9 +165,9 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
     // Ep -> + T Ep | - T Ep | e
     // T  -> F Tp
     // Tp -> * F Tp | / F Tp | e
-    // F -> (EXPR) | (LIST) | NUM | ID
+    // F -> (EXPR) | (LIST) | NUM | ID | ID ( LIST )
 
-    // statement -> { PROG } | ID SUB EXPR | LBL ID | GOTO ID | IF EXPR
+    // statement -> { PROG } | ID SUB EXPR | LBL ID | GOTO ID | IF EXPR statement | FUN ID (LIST) statement | EXPR
     // statement | e prog -> statement DELIM prog | statement LIST -> EXPR COMMA
     // LIST -> EXPR L'
     // L' -> , LIST | e
@@ -250,22 +251,35 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                 switch (in[pos])
                 {
                 case Tok::ID:
-                    if (!quiet)
-                        cout << "STMT -> ID SUBS EXPR" << endl;
+                    if (in[pos+1] == Tok::SUBS)
+                    {
+                        if (!quiet)
+                            cout << "STMT -> ID SUBS EXPR" << endl;
 
-                    st1.pop_back();
+                        st1.pop_back();
 
-                    st1.push_back(Tok::ID);
-                    st1.push_back(Tok::SUBS);
-                    st1.push_back(Tok::EXPR);
+                        st1.push_back(Tok::ID);
+                        st1.push_back(Tok::SUBS);
+                        st1.push_back(Tok::EXPR);
 
-                    cur->add(Tok::ID, data[pos]);
-                    cur->add(Tok::SUBS);
-                    cur->add(Tok::EXPR);
+                        cur->add(Tok::ID, data[pos]);
+                        cur->add(Tok::SUBS);
+                        cur->add(Tok::EXPR);
 
-                    cur = cur->children.back();
+                        cur = cur->children.back();
 
-                    pos += 2;
+                        pos += 2;
+                    }
+                    else
+                    {
+                        if (!quiet)
+                            cout << "STMT -> EXPR" << endl;
+
+                        st1.pop_back();
+                        st1.push_back(Tok::EXPR);
+                        cur->add(Tok::EXPR);
+                        cur = cur->children.back();
+                    }
 
                     break;
 
@@ -319,6 +333,31 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
 
                     break;
 
+                case Tok::FUN:
+                    if (!quiet)
+                        cout << "STMT -> FUN ID ( LIST ) statement" << endl;
+                    st1.pop_back();
+                    st1.push_back(Tok::FUN);
+                    st1.push_back(Tok::ID);
+                    st1.push_back(Tok::OPA);
+                    st1.push_back(Tok::LIST);
+                    
+                    st2.push_front(Tok::STMT);
+                    st2.push_front(Tok::CPA);
+
+                    cur->add(Tok::FUN);
+                    cur->add(Tok::ID, data[pos+1]);
+                    cur->add(Tok::OPA);
+                    cur->add(Tok::LIST);
+                    cur->add(Tok::CPA);
+                    cur->add(Tok::STMT);
+
+                    cur = *next(cur->children.begin(), 3);
+
+                    pos += 3;
+
+                    break;
+
                 case Tok::OBR:
                     if (!quiet)
                         cout << "STMT -> { PROG }" << endl;
@@ -350,7 +389,13 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                     break;
 
                 default:
-                    throw parse_error("expected ID!");
+                    if (!quiet)
+                        cout << "STMT -> EXPR" << endl;
+                    st1.pop_back();
+                    st1.push_back(Tok::EXPR);
+                    cur->add(Tok::EXPR);
+
+                    cur = cur->children.back();
                     break;
                 }
 
@@ -395,10 +440,9 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                         cout << "L' -> e" << endl;
 
                     st1.pop_back();
-                    cur->add(Tok::E);
+                    cur->add(Tok::e);
 
                     shift = true;
-                    pos++;
                     break;
                 }
                 break;
@@ -544,16 +588,39 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                 break;
 
                 case Tok::ID:
-                    if (!quiet)
-                        cout << "F -> ID" << endl;
-                    st1.pop_back();
-                    st1.push_back(Tok::ID);
+                    if (in[pos+1] == Tok::OPA)
+                    {
+                        if (!quiet)
+                            cout << "F -> ID ( LIST )" << endl;
 
-                    cur->add(Tok::ID, data[pos]);
-                    cur = cur->children.front();
+                        st1.pop_back();
+                        st1.push_back(Tok::ID);
+                        st2.push_front(Tok::CPA);
+                        st2.push_front(Tok::LIST);
+                        st2.push_front(Tok::OPA);
 
-                    pos++;
-                    shift = true;
+                        cur->add(Tok::ID, data[pos]);
+                        cur->add(Tok::OPA);
+                        cur->add(Tok::LIST);
+                        cur->add(Tok::CPA);
+                        cur = cur->children.front();
+
+                        pos+=2;
+                        shift = true;
+                    }
+                    else
+                    {
+                        if (!quiet)
+                            cout << "F -> ID" << endl;
+                        st1.pop_back();
+                        st1.push_back(Tok::ID);
+
+                        cur->add(Tok::ID, data[pos]);
+                        cur = cur->children.front();
+
+                        pos++;
+                        shift = true;
+                    }
 
                     break;
 

@@ -160,7 +160,11 @@ BOOST_AUTO_TEST_CASE(hPLTEST)
     clean(tree);
     printNode(tree, 0);
 
-    lex("a = (1, 2, 3, 4)", in, data);
+    lex("fun asdf (a,b,c,d) {a(12,34);1+a(34,56)}", in, data);
+    for (auto &i : in)
+    {
+        cout << i << endl;
+    }
 
     tree = make_shared<Node>();
     parse(tree, in, data, Tok::STMT);
