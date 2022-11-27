@@ -13,6 +13,8 @@
 
 bool clean(const std::shared_ptr<Node> node, bool quiet=true);
 
+const std::shared_ptr<Node> toAST(const std::shared_ptr<Node> tree, bool quiet=true);
+
 void parse(const std::shared_ptr<Node> tree, const std::vector<Tok>& in,
            const std::vector<Data>& data, Tok starting, bool quiet=true);
 

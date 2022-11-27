@@ -17,6 +17,11 @@
 
 using namespace std;
 
+const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
+{
+    return tree;
+}
+
 bool clean(const std::shared_ptr<Node> node, bool quiet)
 {
     for (auto i = node->children.begin(); i != node->children.end();)
