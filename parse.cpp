@@ -19,7 +19,71 @@ using namespace std;
 
 const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
 {
-    return tree;
+    shared_ptr<Node> result = make_shared<Node>();
+    result->i = tree->i;
+    result->type = tree->type;
+    result->data = tree->data;
+    result->parent = weak_ptr<Node>();
+    result->self = result;
+    result->children = {};
+
+    switch (tree->type)
+    {
+
+    case Tok::LIST:
+    {
+
+        result->children.push_back(toAST(tree->children.front(), quiet));
+        auto Lp = tree->children.back();
+        if (Lp->children.size() != 1)
+        {
+            auto temp = toAST(Lp->children.back(), quiet);
+            result->children.insert(result->children.end(),
+                                    temp->children.begin(),
+                                    temp->children.end());
+        }
+    }
+    break;
+
+    case Tok::E:
+    {
+        if (tree->children.size() >= 2)
+        {
+            result->children.push_back(toAST(tree->children.front(), quiet));
+
+            auto Ep = toAST(tree->children.back());
+            result->children.push_back(Ep->children.front());
+        }
+    }
+    break;
+
+    case Tok::F:
+    case Tok::Xp:
+    case Tok::T:
+    case Tok::Tp:
+    case Tok::Lp:
+
+    default:
+        for (auto &i : tree->children)
+        {
+            shared_ptr<Node> child = toAST(i, quiet);
+            if (child->type != Tok::e)
+            {
+                result->children.push_back(child);
+            }
+        }
+
+        break;
+    }
+
+    for (auto child=result->children.begin();child!=result->children.end();child++)
+    {
+        printf("%d\n", result.get());
+        (**child).parent = result;
+        (**child).i = child;
+    }
+
+    return result;
 }
 
 bool clean(const std::shared_ptr<Node> node, bool quiet)
@@ -34,7 +98,6 @@ bool clean(const std::shared_ptr<Node> node, bool quiet)
     }
 
     auto parent = node->parent.lock();
-
     switch (node->type)
     {
     case Tok::T:
@@ -124,12 +187,13 @@ bool clean(const std::shared_ptr<Node> node, bool quiet)
     case Tok::F:
     case Tok::e:
     case Tok::DELIM:
+    case Tok::COMMA:
     case Tok::Tp:
     case Tok::Ep:
     case Tok::Xp:
     case Tok::PROG:
     case Tok::Lp:
-    case Tok::LIST:
+        // case Tok::LIST:
         // case Tok::T:
         {
             if (parent == NULL || parent->type == Tok::STMT)
@@ -165,16 +229,29 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
 {
     // rules:
     // EXPR -> E Xp
-    // Xp -> == E Xp | e
-    // E -> T Ep
-    // Ep -> + T Ep | - T Ep | e
-    // T  -> F Tp
-    // Tp -> * F Tp | / F Tp | e
-    // F -> (EXPR) | (LIST) | NUM | ID | ID ( LIST )
 
-    // statement -> { PROG } | ID SUB EXPR | LBL ID | GOTO ID | IF EXPR statement | FUN ID (LIST) statement | EXPR
-    // statement | e prog -> statement DELIM prog | statement LIST -> EXPR COMMA
+    // Xp -> == E Xp | e
+
+    // E -> T Ep
+
+    // Ep -> + T Ep | - T Ep | e
+
+    // T  -> F Tp
+
+    // Tp -> * F Tp | / F Tp | e
+
+    // F -> (EXPR) | (LIST) | NUM | ID | FUNCALL
+
+    // FUNCALL -> ID ( LIST )
+
+    // statement -> { PROG } | ID SUB EXPR | LBL ID | GOTO ID |
+    // IF EXPR statement | FUN ID (LIST) statement |
+    // EXPR | e
+
+    // prog -> statement DELIM prog | statement
+
     // LIST -> EXPR L'
+
     // L' -> , LIST | e
 
     deque<Tok> st1;
@@ -256,7 +333,7 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                 switch (in[pos])
                 {
                 case Tok::ID:
-                    if (in[pos+1] == Tok::SUBS)
+                    if (in[pos + 1] == Tok::SUBS)
                     {
                         if (!quiet)
                             cout << "STMT -> ID SUBS EXPR" << endl;
@@ -346,12 +423,12 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                     st1.push_back(Tok::ID);
                     st1.push_back(Tok::OPA);
                     st1.push_back(Tok::LIST);
-                    
+
                     st2.push_front(Tok::STMT);
                     st2.push_front(Tok::CPA);
 
                     cur->add(Tok::FUN);
-                    cur->add(Tok::ID, data[pos+1]);
+                    cur->add(Tok::ID, data[pos + 1]);
                     cur->add(Tok::OPA);
                     cur->add(Tok::LIST);
                     cur->add(Tok::CPA);
@@ -593,16 +670,21 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                 break;
 
                 case Tok::ID:
-                    if (in[pos+1] == Tok::OPA)
+                    if (in[pos + 1] == Tok::OPA)
                     {
                         if (!quiet)
-                            cout << "F -> ID ( LIST )" << endl;
-
+                        {
+                            cout << "F -> FUNCALL" << endl;
+                            cout << "FUNCALL -> ID ( LIST )" << endl;
+                        }
                         st1.pop_back();
                         st1.push_back(Tok::ID);
                         st2.push_front(Tok::CPA);
                         st2.push_front(Tok::LIST);
                         st2.push_front(Tok::OPA);
+
+                        cur->add(Tok::FUNCALL);
+                        cur = cur->children.back();
 
                         cur->add(Tok::ID, data[pos]);
                         cur->add(Tok::OPA);
@@ -610,7 +692,7 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                         cur->add(Tok::CPA);
                         cur = cur->children.front();
 
-                        pos+=2;
+                        pos += 2;
                         shift = true;
                     }
                     else

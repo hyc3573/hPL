@@ -50,7 +50,8 @@ enum class Tok
     LIST,
     Lp,
 
-    FUN
+    FUN,
+    FUNCALL
 };
 
 std::ostream& operator<<(std::ostream& os, const Tok& tok);
@@ -61,7 +62,7 @@ typedef struct
     Tok token;
 } LexToken;
 
-extern const char *tokstr[30];
+extern const char *tokstr[31];
 extern LexToken rule[18];
 extern std::regex strignore;
 
