@@ -52,7 +52,10 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
             result->children.push_back(toAST(tree->children.front(), quiet));
 
             auto Ep = toAST(tree->children.back());
-            result->children.push_back(Ep->children.front());
+            if (!Ep->children.empty())
+            {
+                result->children.push_back(Ep->children.front());
+            }
         }
     }
     break;
@@ -78,7 +81,6 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
 
     for (auto child=result->children.begin();child!=result->children.end();child++)
     {
-        printf("%d\n", result.get());
         (**child).parent = result;
         (**child).i = child;
     }
