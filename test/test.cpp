@@ -1,4 +1,3 @@
-#include <boost/test/tools/old/interface.hpp>
 #include <memory>
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE hPLTEST
@@ -160,7 +159,7 @@ BOOST_AUTO_TEST_CASE(hPLTEST)
     clean(tree);
     printNode(tree, 0);
 
-    lex("fun asdf (a,b,c,d) {a(12,34);1+a(34,56+78+10*10*10)}", in, data);
+    lex("fun asdf (a,b,c,d) {a(12,34);b=1+a(34,56+78-10*10/10)}", in, data);
     for (auto &i : in)
     {
         cout << i << endl;
@@ -171,4 +170,5 @@ BOOST_AUTO_TEST_CASE(hPLTEST)
     printNode(tree, 0);
     auto ast = toAST(tree, false);
     printNode(ast, 0);
+    cout << ast->validate() << endl;
 }

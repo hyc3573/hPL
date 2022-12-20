@@ -1,10 +1,15 @@
 #include "parse.hpp"
 #include "utils.hpp"
 
+#include <boost/container_hash/extensions.hpp>
 #include <exception>
 #include <iterator>
+#include <queue>
+#include <stack>
 #include <string>
 #include <sys/types.h>
+#include <type_traits>
+#include <utility>
 
 #define SKIP(x)                                                                \
     case (x):                                                                  \
@@ -19,71 +24,224 @@ using namespace std;
 
 const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
 {
+    // copy tree to result
+    queue<pair<shared_ptr<Node>, shared_ptr<Node>>> q1;
+
     shared_ptr<Node> result = make_shared<Node>();
-    result->i = tree->i;
     result->type = tree->type;
-    result->data = tree->data;
     result->parent = weak_ptr<Node>();
     result->self = result;
-    result->children = {};
+    result->i = result->children.begin();
+    result->data = {};
 
-    switch (tree->type)
+    q1.push({tree, result});
+
+    while (!q1.empty())
     {
+        auto element = q1.front();
+        q1.pop();
 
-    case Tok::LIST:
-    {
-
-        result->children.push_back(toAST(tree->children.front(), quiet));
-        auto Lp = tree->children.back();
-        if (Lp->children.size() != 1)
+        for (auto &i : element.first->children)
         {
-            auto temp = toAST(Lp->children.back(), quiet);
-            result->children.insert(result->children.end(),
-                                    temp->children.begin(),
-                                    temp->children.end());
+            element.second->add(i->type);
+            element.second->children.back()->data = i->data;
+            q1.push({i, element.second->children.back()});
         }
     }
-    break;
+    assert(result->validate());
 
-    case Tok::E:
+    // first pass: remove e, parenthesis, semicolon node
+    queue<shared_ptr<Node>> q2;
+    q2.push(result);
+    while (!q2.empty())
     {
-        if (tree->children.size() >= 2)
-        {
-            result->children.push_back(toAST(tree->children.front(), quiet));
+        auto element = q2.front();
+        q2.pop();
 
-            auto Ep = toAST(tree->children.back());
-            if (!Ep->children.empty())
+        if (element->type == Tok::e ||
+            element->type == Tok::OPA ||
+            element->type == Tok::CPA ||
+            element->type == Tok::OBR ||
+            element->type == Tok::CBR ||
+            element->type == Tok::DELIM)
+        {
+            auto parent = element->parent.lock();
+            parent->children.erase(element->i);
+        }
+        else
+        {
+            for (auto &i : element->children)
             {
-                result->children.push_back(Ep->children.front());
+                q2.push(i);
             }
         }
     }
-    break;
+    assert(result->validate());
 
-    case Tok::F:
-    case Tok::Xp:
-    case Tok::T:
-    case Tok::Tp:
-    case Tok::Lp:
+    // second pass: remove childrenless node
+    q2.push(result);
+    while (!q2.empty())
+    {
+        auto element = q2.front();
+        q2.pop();
 
-    default:
-        for (auto &i : tree->children)
+        switch (element->type)
         {
-            shared_ptr<Node> child = toAST(i, quiet);
-            if (child->type != Tok::e)
+        case Tok::E:
+        case Tok::Ep:
+        case Tok::F:
+        case Tok::T:
+        case Tok::Tp:
+        case Tok::Xp:
+        case Tok::Lp:
+            if (element->children.empty())
             {
-                result->children.push_back(child);
+                auto parent = element->parent.lock();
+                parent->children.erase(element->i);
+                break;
+            }
+
+        default:
+            for (auto &i : element->children)
+            {
+                q2.push(i);
+            }
+        }
+    }
+    assert(result->validate());
+
+    // third pass: elevate only child
+    q2.push(result);
+    while (!q2.empty())
+    {
+        auto element = q2.front();
+        q2.pop();
+
+        switch (element->type)
+        {
+        case Tok::E:
+        case Tok::Ep:
+        case Tok::F:
+        case Tok::T:
+        case Tok::Tp:
+        case Tok::Xp:
+        case Tok::Lp:
+            if (element->children.size() == 1)
+            {
+                auto child = *element->children.front();
+
+                element->type = child.type;
+                element->children = child.children;
+                element->data = child.data;
+
+                for (auto i = element->children.begin();
+                     i != element->children.end(); i++)
+                {
+                    (**i).parent = element;
+                    (**i).i = i;
+                }
+
+                if (!element->parent.expired())
+                {
+                    q2.push(element->parent.lock());
+                }
+            }
+
+        default:
+            break;
+        }
+
+        for (auto &i : element->children)
+        {
+            q2.push(i);
+        }
+    }
+    assert(result->validate());
+
+    // fourth pass: flatten addition and multiplication
+    q2.push(result);
+    while (!q2.empty())
+    {
+        auto element = q2.front();
+        q2.pop();
+
+        if (element->type == Tok::E || element->type == Tok::T)
+        {
+            if (element->children.size() == 2)
+            {
+                element->type = element->type == Tok::E ? Tok::PLUS : Tok::MUL;
+
+                auto Ep = element->children.back();
+
+                while (Ep->children.size() == 3)
+                {
+                    Ep->type = Ep->children.front()->type;
+                    Ep->children.pop_front();
+                    element->add(Ep->children.back());
+                    Ep->children.pop_back();
+
+                    Ep = element->children.back();
+                }
+
+                if (Ep->children.size() == 2)
+                {
+                    Ep->type = Ep->children.front()->type;
+                    Ep->children.pop_front();
+                }
             }
         }
 
-        break;
+        for (auto &i : element->children)
+        {
+            q2.push(i);
+        }
     }
+    assert(result->validate());
 
-    for (auto child=result->children.begin();child!=result->children.end();child++)
+    // fifth path: flatten list and add substitution nodes
+    q2.push(result);
+    while (!q2.empty())
     {
-        (**child).parent = result;
-        (**child).i = child;
+        auto element = q2.front();
+        q2.pop();
+
+        if (element->type == Tok::LIST && element->children.size() == 2)
+        {
+            auto elems = move(element->children); // https://stackoverflow.com/questions/12613428/stl-vector-moving-all-elements-of-a-vector
+
+            element->children.push_back(elems.front());
+            auto list = elems.back()->children.back();
+            while (list->children.size() == 2)
+            {
+                element->add(list->children.front());
+                list = list->children.back()->children.back();
+            }
+            element->add(list->children.front());
+            assert(result->validate());
+        }
+
+        if (element->type == Tok::STMT &&
+            element->children.size() == 3 &&
+            (**next(element->children.begin())).type == Tok::SUBS)
+        {
+            element->add(Tok::SUBS);
+            element->children.erase(next(element->children.begin()));
+
+            for (int i=0;i<2;i++)
+            {
+                auto subs = element->children.back();
+                subs->add(element->children.front());
+                element->children.pop_front();
+            }
+            assert(result->validate());
+        }
+
+            for (auto &i : element->children)
+            {
+                q2.push(i);
+            }
     }
+    assert(result->validate());
 
     return result;
 }
