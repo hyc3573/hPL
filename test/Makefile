@@ -5,7 +5,7 @@ CXXFLAGS ?= -Wall -Wpedantic -g -ggdb3 -std=c++17
 LDFLAGS ?= -lboost_unit_test_framework
 
 objs ?= test.o
-testobjs ?= ../lex.o ../utils.o ../tokens.o ../node.o ../parse.o
+testobjs ?= ../lex.o ../utils.o ../tokens.o ../node.o ../parse.o ../eval.o
 
 .Phony : run clean
 all: $(bin)

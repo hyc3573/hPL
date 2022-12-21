@@ -5,7 +5,7 @@ CXX ?= CXX
 CXXFLAGS ?= -Wall -Wpedantic -g -ggdb3 -std=c++17
 LDFLAGS ?= 
 
-objs ?= main.o lex.o utils.o tokens.o node.o parse.o
+objs ?= main.o lex.o utils.o tokens.o node.o parse.o eval.o
 
 export CXX
 

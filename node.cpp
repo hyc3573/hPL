@@ -33,7 +33,8 @@ bool Node::validate()
             result &&
             !(**i).parent.expired() &&
             (**i).parent.lock() == self.lock() &&
-            (**i).validate();
+            (**i).validate() &&
+            (**i).i == i;
     }
 
     return result;
