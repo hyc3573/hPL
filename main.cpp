@@ -25,8 +25,8 @@ int main(int argc, char *argv[])
         shared_ptr<Node> tree;
         tree = make_shared<Node>();
         parse(tree, in, data, Tok::PROG, false);
-        clean(tree);
+        auto ast = toAST(tree);
 
-        printNode(tree, 0);
+        printNode(ast, 0);
     }
 }

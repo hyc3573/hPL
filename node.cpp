@@ -15,6 +15,31 @@ void Node::add(Tok newtype, Data data)
     children.back()->data = data;
 }
 
+void Node::add(std::shared_ptr<Node> tree)
+{
+    using namespace std;
+    children.push_back(tree);
+    children.back()->parent = self;
+    children.back()->i = prev(children.end());
+}
+
+bool Node::validate()
+{
+    bool result = !self.expired();
+
+    for (auto i=children.begin();i!=children.end();i++)
+    {
+        result =
+            result &&
+            !(**i).parent.expired() &&
+            (**i).parent.lock() == self.lock() &&
+            (**i).validate() &&
+            (**i).i == i;
+    }
+
+    return result;
+}
+
 Node::~Node()
 {
     children.clear();

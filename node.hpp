@@ -20,7 +20,8 @@ typedef struct Node
     Node(){};
     ~Node();
     void add(Tok, Data data={});
-
+    void add(std::shared_ptr<Node>);
+    bool validate();
 } Node;
 
 void printNode(const std::shared_ptr<const Node> node, const int indent,
