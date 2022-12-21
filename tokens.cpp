@@ -1,7 +1,7 @@
 #include "tokens.hpp"
 
 const char *tokstr[] = {
-    "NUM", "+", "-", "*", "/", "(", ")", "E", "E'", "F", "T", "T'", "e", "ID", "=", "statement", "program", ";", "label", "goto", "if", "==", "expression", "X'", "{", "}", ",", "LIST", "L'", "FUN"};
+    "NUM", "+", "-", "*", "/", "(", ")", "E", "E'", "F", "T", "T'", "e", "ID", "=", "statement", "program", ";", "label", "goto", "if", "==", "expression", "X'", "{", "}", ",", "LIST", "L'", "FUN", "FUNCALL"};
 
 LexToken rule[] = {
         {std::regex("[0-9]+", std::regex::extended), Tok::NUM},
