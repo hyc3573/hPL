@@ -1,4 +1,5 @@
 #include "parse.hpp"
+#include "node.hpp"
 #include "utils.hpp"
 
 #include <boost/container_hash/extensions.hpp>
@@ -94,10 +95,18 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
         case Tok::Tp:
         case Tok::Xp:
         case Tok::Lp:
-            if (element->children.empty())
+        case Tok::PROG:
+        case Tok::STMT:
+            if (element->children.empty() && element.use_count() >= 2)
             {
                 auto parent = element->parent.lock();
+                assert(result->validate());
+
+                printNode(parent, 0, element.get());
                 parent->children.erase(element->i);
+                printNode(parent, 0, element.get());
+                q2.push(parent);
+
                 break;
             }
 
@@ -158,7 +167,7 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
     }
     assert(result->validate());
 
-    // fourth pass: flatten addition and multiplication
+    // fourth pass: flatten addition and multiplication and eqality
     q2.push(result);
     while (!q2.empty())
     {
@@ -191,6 +200,22 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
             }
         }
 
+        if (element->type == Tok::EXPR && element->children.back()->type == Tok::Xp)
+        {
+            auto children = move(element->children);
+            element->add(Tok::EQ);
+            auto eq = element->children.front();
+
+            for (auto& i : children)
+            {
+                eq->add(i);
+            }
+
+            auto arg2 = children.back()->children.back();
+            eq->children.pop_back();
+            eq->add(arg2);
+        }
+
         for (auto &i : element->children)
         {
             q2.push(i);
@@ -217,6 +242,12 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
                 list = list->children.back()->children.back();
             }
             element->add(list->children.front());
+
+            for (auto i=element->children.begin();i!=element->children.end();i++)
+            {
+                (**i).parent = element;
+                (**i).i = i;
+            }
             assert(result->validate());
         }
 
