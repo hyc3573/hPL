@@ -23,6 +23,15 @@ void Node::add(std::shared_ptr<Node> tree)
     children.back()->i = prev(children.end());
 }
 
+void Node::add(std::shared_ptr<Node> tree,
+               std::list<shared_ptr<Node>>::iterator i)
+{
+    using namespace std;
+    children.insert(i, tree);
+    children.back()->parent = self;
+    children.back()->i = prev(children.end());
+}
+
 bool Node::validate()
 {
     bool result = !self.expired();
