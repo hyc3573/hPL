@@ -182,5 +182,5 @@ BOOST_AUTO_TEST_CASE(hPLTEST)
     Context context;
     context.set("a", 10);
     evaluate(ast, context);
-    cout << get<int>(context.get("a")) << endl;
+    cout << get<long long int>(context.get("a")) << endl;
 }

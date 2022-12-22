@@ -99,10 +99,12 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
                 auto parent = element->parent.lock();
                 assert(result->validate());
 
-                printNode(parent, 0, element.get());
-                parent->children.erase(element->i);
-                printNode(parent, 0, element.get());
-                q2.push(parent);
+                if (element->i != parent->children.end())
+                {
+                    parent->children.erase(element->i);
+                    element->i = parent->children.end();
+                    q2.push(parent);
+                }
 
                 break;
             }
@@ -267,7 +269,8 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
             assert(result->validate());
         }
 
-        while (element->type == Tok::PROG && element->children.back()->type == Tok::PROG)
+        while (element->type == Tok::PROG &&
+               element->children.back()->type == Tok::PROG)
         {
             auto stmts = move(element->children.back()->children);
             element->children.pop_back();
@@ -276,7 +279,6 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
             {
                 element->add(i);
             }
-
         }
 
         for (auto &i : element->children)
@@ -487,9 +489,12 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                 bool hasDelim = false;
 
                 for (int i = pos; i < in.size(); i++)
+                {
                     if (in[i] == Tok::DELIM)
                         hasDelim = true;
-
+                    if (in[i] == Tok::CBR)
+                        break;
+                }
                 if (hasDelim)
                 {
                     if (!quiet)
@@ -669,7 +674,7 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                     cur->add(Tok::e);
 
                     shift = true;
-                    pos += 1;
+                    // pos += 1;
 
                     break;
 

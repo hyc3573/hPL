@@ -77,6 +77,6 @@ extern std::regex strignore;
 //     ~Data() {};
 // };
 
-typedef std::variant<std::monostate, int, std::string> Data;
+typedef std::variant<std::monostate, long long int, std::string> Data;
 
 #endif

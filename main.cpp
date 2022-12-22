@@ -1,3 +1,4 @@
+#include "eval.hpp"
 #include "lex.hpp"
 #include "node.hpp"
 #include "parse.hpp"
@@ -26,7 +27,17 @@ int main(int argc, char *argv[])
         tree = make_shared<Node>();
         parse(tree, in, data, Tok::PROG, false);
         auto ast = toAST(tree);
-
         printNode(ast, 0);
+
+        Context context;
+        context.set("result", -1);
+        int input;
+        cout << "input: ";
+        cin >> input;
+        context.set("input", input);
+
+        evaluate(ast, context);
+
+        cout << get<long long int>(context.get("result")) << endl;
     }
 }

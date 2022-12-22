@@ -67,7 +67,7 @@ Data evaluate(shared_ptr<Node> AST, Context &context)
         case Tok::IF:
         {
             int result =
-                get<int>(evaluate(*next(AST->children.begin()), context));
+                get<long long int>(evaluate(*next(AST->children.begin()), context));
 
             if (result)
             {
@@ -83,6 +83,12 @@ Data evaluate(shared_ptr<Node> AST, Context &context)
             context.goto_flag = true;
             context.goto_label = get<string>(AST->children.back()->data);
             return {};
+
+        case Tok::PROG:
+        case Tok::STMT:
+            evaluate(AST->children.front(), context);
+            return {};
+            break;            
 
         default:
             break;
@@ -105,14 +111,14 @@ Data evaluate(shared_ptr<Node> AST, Context &context)
 
     case Tok::MUL:
     {
-        int acc = get<int>(evaluate(AST->children.front(), context));
+        int acc = get<long long int>(evaluate(AST->children.front(), context));
         for (auto i = next(AST->children.begin()); i != AST->children.end();
              i++)
         {
             if ((**i).type == Tok::MUL)
-                acc *= get<int>(evaluate((**i).children.front(), context));
+                acc *= get<long long int>(evaluate((**i).children.front(), context));
             if ((**i).type == Tok::DIV)
-                acc *= get<int>(evaluate((**i).children.front(), context));
+                acc /= get<long long int>(evaluate((**i).children.front(), context));
         }
 
         return acc;
@@ -122,14 +128,14 @@ Data evaluate(shared_ptr<Node> AST, Context &context)
 
     case Tok::PLUS:
     {
-        int acc = get<int>(evaluate(AST->children.front(), context));
+        int acc = get<long long int>(evaluate(AST->children.front(), context));
         for (auto i = next(AST->children.begin()); i != AST->children.end();
              i++)
         {
             if ((**i).type == Tok::PLUS)
-                acc += get<int>(evaluate((**i).children.front(), context));
+                acc += get<long long int>(evaluate((**i).children.front(), context));
             if ((**i).type == Tok::MINUS)
-                acc -= get<int>(evaluate((**i).children.front(), context));
+                acc -= get<long long int>(evaluate((**i).children.front(), context));
         }
 
         return acc;

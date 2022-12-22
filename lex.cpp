@@ -31,7 +31,7 @@ void lex(std::string input, std::vector<Tok> &in, std::vector<Data> &data,
 
                 if (tok.token == Tok::NUM)
                 {
-                    data.back() = stoi(str);
+                    data.back() = stoll(str);
                 }
                 else if (tok.token == Tok::ID)
                 {

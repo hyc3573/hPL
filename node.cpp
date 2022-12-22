@@ -65,8 +65,8 @@ void printNodeOs(std::ostream &os, const std::shared_ptr<const Node> node,
     if (!holds_alternative<monostate>(node->data))
         os << ": ";
     
-    if (holds_alternative<int>(node->data))
-        os << get<int>(node->data);
+    if (holds_alternative<long long int>(node->data))
+        os << get<long long int>(node->data);
     else if (holds_alternative<string>(node->data))
         os << get<string>(node->data);
     

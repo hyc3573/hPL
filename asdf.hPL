@@ -1,4 +1,16 @@
-if asdf == 5
-{
-    asdf = 1*4;
-}
+result = 0;
+div = 1;
+mul = 1;
+
+label a;
+
+result = result + (100000000*mul)/div;
+
+div = div + 2;
+mul = mul * (0-1);
+input = input - 1;
+
+if (input == 0) == 0
+ goto a;
+
+result = result * 4;
