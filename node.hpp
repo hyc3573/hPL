@@ -21,6 +21,7 @@ typedef struct Node
     ~Node();
     void add(Tok, Data data={});
     void add(std::shared_ptr<Node>);
+    void add(std::shared_ptr<Node>, std::list<std::shared_ptr<Node>>::iterator i);
     bool validate();
 } Node;
 

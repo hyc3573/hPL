@@ -59,12 +59,9 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
         auto element = q2.front();
         q2.pop();
 
-        if (element->type == Tok::e ||
-            element->type == Tok::OPA ||
-            element->type == Tok::CPA ||
-            element->type == Tok::OBR ||
-            element->type == Tok::CBR ||
-            element->type == Tok::DELIM)
+        if (element->type == Tok::e || element->type == Tok::OPA ||
+            element->type == Tok::CPA || element->type == Tok::OBR ||
+            element->type == Tok::CBR || element->type == Tok::DELIM)
         {
             auto parent = element->parent.lock();
             parent->children.erase(element->i);
@@ -200,13 +197,14 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
             }
         }
 
-        if (element->type == Tok::EXPR && element->children.back()->type == Tok::Xp)
+        if (element->type == Tok::EXPR &&
+            element->children.back()->type == Tok::Xp)
         {
             auto children = move(element->children);
             element->add(Tok::EQ);
             auto eq = element->children.front();
 
-            for (auto& i : children)
+            for (auto &i : children)
             {
                 eq->add(i);
             }
@@ -223,7 +221,7 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
     }
     assert(result->validate());
 
-    // fifth path: flatten list and add substitution nodes
+    // fifth path: flatten list, add substitution nodes and PROG
     q2.push(result);
     while (!q2.empty())
     {
@@ -232,7 +230,9 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
 
         if (element->type == Tok::LIST && element->children.size() == 2)
         {
-            auto elems = move(element->children); // https://stackoverflow.com/questions/12613428/stl-vector-moving-all-elements-of-a-vector
+            auto elems = move(
+                element
+                    ->children); // https://stackoverflow.com/questions/12613428/stl-vector-moving-all-elements-of-a-vector
 
             element->children.push_back(elems.front());
             auto list = elems.back()->children.back();
@@ -243,7 +243,8 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
             }
             element->add(list->children.front());
 
-            for (auto i=element->children.begin();i!=element->children.end();i++)
+            for (auto i = element->children.begin();
+                 i != element->children.end(); i++)
             {
                 (**i).parent = element;
                 (**i).i = i;
@@ -251,14 +252,13 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
             assert(result->validate());
         }
 
-        if (element->type == Tok::STMT &&
-            element->children.size() == 3 &&
+        if (element->type == Tok::STMT && element->children.size() == 3 &&
             (**next(element->children.begin())).type == Tok::SUBS)
         {
             element->add(Tok::SUBS);
             element->children.erase(next(element->children.begin()));
 
-            for (int i=0;i<2;i++)
+            for (int i = 0; i < 2; i++)
             {
                 auto subs = element->children.back();
                 subs->add(element->children.front());
@@ -267,10 +267,22 @@ const shared_ptr<Node> toAST(const shared_ptr<Node> tree, bool quiet)
             assert(result->validate());
         }
 
-            for (auto &i : element->children)
+        while (element->type == Tok::PROG && element->children.back()->type == Tok::PROG)
+        {
+            auto stmts = move(element->children.back()->children);
+            element->children.pop_back();
+
+            for (auto &i : stmts)
             {
-                q2.push(i);
+                element->add(i);
             }
+
+        }
+
+        for (auto &i : element->children)
+        {
+            q2.push(i);
+        }
     }
     assert(result->validate());
 
@@ -827,14 +839,14 @@ void parse(const std::shared_ptr<Node> tree, const std::vector<Tok> &in,
                     if (expr)
                     {
                         if (!quiet)
-                            cout << "F -> ( E )" << endl;
+                            cout << "F -> ( EXPR )" << endl;
                         st1.pop_back();
                         st1.push_back(Tok::OPA);
-                        st1.push_back(Tok::E);
+                        st1.push_back(Tok::EXPR);
                         st2.push_front(Tok::CPA);
 
                         cur->add(Tok::OPA);
-                        cur->add(Tok::E);
+                        cur->add(Tok::EXPR);
                         cur->add(Tok::CPA);
                         cur = *next(cur->children.begin());
 
