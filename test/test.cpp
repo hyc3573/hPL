@@ -173,12 +173,14 @@ BOOST_AUTO_TEST_CASE(hPLTEST)
     printNode(ast, 0);
     cout << ast->validate() << endl;
 
-    lex("1*(5+2)*3", in, data);
+    lex("a=0;goto a;a=13;label a", in, data);
     tree = make_shared<Node>();
-    parse(tree, in, data, Tok::EXPR);
+    parse(tree, in, data, Tok::PROG);
     ast = toAST(tree, false);
     printNode(ast, 0);
 
     Context context;
-    cout << get<int>(evaluate(ast, context)) << endl;
+    context.set("a", 10);
+    evaluate(ast, context);
+    cout << get<int>(context.get("a")) << endl;
 }
