@@ -11,6 +11,8 @@ mul = mul * (0-1);
 input = input - 1;
 
 if (input == 0) == 0
- goto a;
+{
+    goto a;
+};
 
 result = result * 4;

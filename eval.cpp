@@ -157,6 +157,7 @@ Data evaluate(shared_ptr<Node> AST, Context &context)
 
             if (context.goto_flag)
             {
+                bool found = false;
                 for (auto j = AST->children.begin(); j != AST->children.end();
                      j++)
                 {
@@ -165,9 +166,13 @@ Data evaluate(shared_ptr<Node> AST, Context &context)
                             context.goto_label)
                     {
                         i = j;
+                        found = true;
                     }
                 }
-                context.goto_flag = false;
+                if (found)
+                    context.goto_flag = false;
+                else
+                    return {};
             }
             else
             {
